@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta property="og:title" content="rkhawariz-movielist" />
+    <meta property="og:description" content="Projek untuk membuat daftar film favorite" />
+    <meta property="og:image" content="https://movie-phinf.pstatic.net/20210715_95/1626338192428gTnJl_JPEG/movie_image.jpg" />
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.js"></script>
+
+    <title>Sparta Coding Club | Bootstrap Practice</title>
+
+    <script>
+      // menjalankan function listing() saat document sudah terload sempurna
+      $(document).ready(function () {
+        listing();
+        bsCustomFileInput.init();
+      });
+
+      // saat function berjalan, akan melakukan ajax request dengan type get dan url /diary
+      function listing() {
+        $.ajax({
+          type: "GET",
+          url: "/diary",
+          data: {},
+          // saat success akan melakukan response berupa memasukkan object json "articles" ke dalam variable articles yang berisi list json
+          success: function (response) {
+            let articles = response["articles"];
+            // membuat perulangan dan variable yang akan menampung value yang terdapat pada list data json pada object articles
+            for (let i = 0; i < articles.length; i++) {
+              let title = articles[i]["title"];
+              let content = articles[i]["content"];      
+              let file = articles[i]['file'];
+              let time = articles[i]['time'] || '????.??.??';
+              let profile = articles[i]['profile'];        
+              let temp_html = `<div class="col-4 mb-4">
+          <div class="card">
+            <img
+              src="../${file}"
+              class="card-img-top"
+              style="height:200px; width:354px"
+              alt="..."
+            />
+            <div class="card-body">
+              <img
+              src="../${profile}"
+              class="card-img-top mb-2"
+              style='height : 65px; width : 65px; border-radius : 50%; margin-left : -4px; margin-top : -4px'
+              alt="..."
+            />
+              <h5 class="card-title">${title}</h5>
+              <p class="card-text">
+                ${content}
+              </p>
+              <h6 class="card-subtitle mb-2 text-muted">${time}</h6>
+            </div>
+          </div>
+        </div>
+              `;
+              $('#cards-box').append(temp_html);
+            } 
+          },
+        });
+      }
+
+      function posting() {
+        // variable untuk menampung nilai yang diinput oleh user
+        let title = $("#image-title").val();
+        // apabila varibale title kosong, maka akan menampilkan alert
+        if (!title) {
+          return alert("Silahkan masukkan title.");
+        }
+        let content = $("#image-description").val();
+        if (!content) {
+          return alert("Silahkan masukkan content.");
+        }
+        
+        // variable untuk menampung input user yang berupa files dengan index pertama
+        let file = $('#image').prop('files')[0];
+        let profile= $('#profile').prop('files')[0];
+
+        // memasukkan variable data yang sudah diterima oleh user dan memasangkannya denga key-value
+        let form_data = new FormData();
+        form_data.append('file_give', file)
+        form_data.append('profile_give', profile)
+        form_data.append('title_give', title);
+        form_data.append('content_give', content)
+        
+        $.ajax({
+          type: "POST",
+          url: "/diary",
+          // mengabaikan tipe data yang ada pada inputan user
+          data: form_data,
+          contentType: false,
+          processData: false,
+          success: function (response) {
+            alert(response["msg"]);
+            window.location.reload();
+          },
+        });
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="p-5 mb-4 bg-light rounded-3">
+        <div class="container-fluid py-5">
+          <h1 class="display-5 fw-bold">Personal Diary</h1>
+          <div class="input group mb-3 custom-file">
+            <h6>Image:</h6>
+            <input class="form-control" type="file" id="image" />
+          </div>
+          <div class="input group mb-3 custom-file">
+            <h6>Profile:</h6>
+            <input class="form-control" type="file" id="profile" />
+          </div>
+          <div class="mb-3">
+            <input
+              type="text"
+              class="form-control"
+              id="image-title"
+              placeholder="The title of your image"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <textarea
+              placeholder="The description of your image"
+              class="form-control"
+              id="image-description"
+              rows="3"
+              required
+            ></textarea>
+          </div>
+          <button onclick="posting()" type="button" class="btn btn-primary">
+            Save
+          </button>
+        </div>
+      </div>
+      <div class="row justify-content-start" id="cards-box"></div>
+    </div>
+  </body>
+</html>
